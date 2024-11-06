@@ -1,4 +1,4 @@
-import 'Ingredient.dart';
+import 'ingredient.dart';
 
 class Recipe {
   final int id;
@@ -22,11 +22,13 @@ class Recipe {
   factory Recipe.fromJson(Map<String, dynamic> json) {
     final ingredients = <Ingredient>[];
 
-    for (int i = 1; i <= 20; i++) { // On suppose un maximum de 20 ingrédients
+    for (int i = 1; i <= 20; i++) {
+      // On suppose un maximum de 20 ingrédients
       final ingredientName = json['strIngredient$i'];
       final ingredientMeasure = json['strMeasure$i'];
       if (ingredientName != null && ingredientName.isNotEmpty) {
-        ingredients.add(Ingredient(name: ingredientName, measure: ingredientMeasure ?? ''));
+        ingredients.add(
+            Ingredient(name: ingredientName, measure: ingredientMeasure ?? ''));
       }
     }
 
