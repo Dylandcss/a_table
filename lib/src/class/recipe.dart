@@ -3,42 +3,28 @@ import 'ingredient.dart';
 class Recipe {
   final int id;
   final String name;
-  final String category;
   final String instructions;
-  final String thumb;
-  final String video;
-  final List<Ingredient> ingredients; // Ajout de la liste des ingrédients
+  final String imageUrl;
+  final List<Ingredient> ingredients;
 
-  const Recipe({
+  Recipe({
     required this.id,
     required this.name,
-    required this.category,
     required this.instructions,
-    required this.thumb,
-    required this.video,
-    required this.ingredients, // Ajout des ingrédients au constructeur
+    required this.imageUrl,
+    required this.ingredients,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
-    final ingredients = <Ingredient>[];
-
-    for (int i = 1; i <= 20; i++) {
-      // On suppose un maximum de 20 ingrédients
-      final ingredientName = json['strIngredient$i'];
-      final ingredientMeasure = json['strMeasure$i'];
-      if (ingredientName != null && ingredientName.isNotEmpty) {
-        ingredients.add(
-            Ingredient(name: ingredientName, measure: ingredientMeasure ?? ''));
-      }
-    }
+    final List<dynamic> ingredientList = json['ingredients'] as List<dynamic>;
+    final List<Ingredient> ingredients =
+        ingredientList.map((item) => Ingredient.fromJson(item)).toList();
 
     return Recipe(
-      id: json['idMeal'] != null ? int.parse(json['idMeal']) : 0,
-      name: json['strMeal'] ?? 'Unknown',
-      category: json['strCategory'] ?? 'Unknown',
-      instructions: json['strInstructions'] ?? 'No instructions provided.',
-      thumb: json['strMealThumb'] ?? '',
-      video: json['strYoutube'] ?? '',
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
+      name: json['name'] as String,
+      instructions: json['instructions'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
       ingredients: ingredients,
     );
   }

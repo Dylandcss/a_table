@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import '../class/recipe.dart';
 import 'package:http/http.dart' as http;
+
+import '../class/recipe.dart';
 
 class RecipePage extends StatefulWidget {
   final int recipeId;
@@ -13,21 +15,26 @@ class RecipePage extends StatefulWidget {
 }
 
 class _RecipePageState extends State<RecipePage> {
-  late Future<Recipe?> recipe;
+  late Future<Recipe> recipe;
 
-  Future<Recipe?> fetchRecipe() async {
-    final response = await http.get(Uri.parse(
-        'https://www.themealdb.com/api/json/v1/1/lookup.php?i=${widget.recipeId}'));
+  Future<Recipe> fetchRecipe() async {
+    try {
+      final response = await http.get(Uri.parse(
+          'https://s5-5032.nuage-peda.fr/projets_sio2/B2/Quesque/api_a_table/API_Recipes.php?id=${widget.recipeId}'));
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      if (data['meals'] != null && (data['meals'] as List).isNotEmpty) {
-        return Recipe.fromJson(data['meals'][0]);
+      if (response.statusCode == 200) {
+        final body = response.body;
+        // print("API Response: $body");
+
+        final Map<String, dynamic> data = jsonDecode(body);
+
+        return Recipe.fromJson(data);
       } else {
-        return null; // Pas de recette trouvée
+        throw Exception('Failed to load recipe: ${response.statusCode}');
       }
-    } else {
-      throw Exception('Échec du chargement de la recette');
+    } catch (error) {
+      // print("Error: $error");
+      throw Exception('Error fetching recipe: $error');
     }
   }
 
@@ -43,14 +50,14 @@ class _RecipePageState extends State<RecipePage> {
       appBar: AppBar(
         title: const Text('Recette'),
       ),
-      body: FutureBuilder<Recipe?>(
+      body: FutureBuilder<Recipe>(
         future: recipe,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur : ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data == null) {
+          } else if (!snapshot.hasData) {
             return const Center(child: Text('Aucune recette trouvée.'));
           } else {
             final recipeData = snapshot.data!;
@@ -58,24 +65,29 @@ class _RecipePageState extends State<RecipePage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Image.network(recipeData.thumb),
+                    Image.network(recipeData.imageUrl),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 8.0)),
-                    Text(recipeData.name, style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 24,
-                    )),
+                    Text(recipeData.name,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 24,
+                        )),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 8.0)),
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(recipeData.instructions,style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                    ))),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 16.0)),
-                    const Text('Ingrédients:', style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    )),
+                    Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(recipeData.instructions,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                            ))),
+                    const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.0)),
+                    const Text('Ingrédients:',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        )),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 8.0)),
                     ListView.builder(
                       shrinkWrap: true,
@@ -84,7 +96,8 @@ class _RecipePageState extends State<RecipePage> {
                       itemBuilder: (BuildContext context, int index) {
                         final ingredient = recipeData.ingredients[index];
                         return ListTile(
-                          title: Text('${ingredient.name} (${ingredient.measure})'),
+                          title: Text(
+                              '${ingredient.name} (${ingredient.quantity} ${ingredient.unit ?? ''})'),
                         );
                       },
                     ),

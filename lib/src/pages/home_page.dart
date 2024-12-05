@@ -17,20 +17,28 @@ class _TrendingRecipeListState extends State<TrendingRecipeList> {
   late Future<List<Recipe>> recipes;
 
   Future<List<Recipe>> fetchRecipes() async {
-    final response = await http
-        .get(Uri.parse('https://www.themealdb.com/api/json/v1/1/search.php?s='));
+    try {
+      final response = await http.get(Uri.parse(
+          'https://s5-5032.nuage-peda.fr/projets_sio2/B2/Quesque/api_a_table/API_Recipes.php'));
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final recipesList = (data['meals'] as List).map((item) => Recipe.fromJson(item)).toList();
-      return recipesList;
-    } else {
-      throw Exception('Failed to load recipes');
+      if (response.statusCode == 200) {
+        final body = response.body;
+        // print("API Response: $body"); // Log de la réponse brute
+
+        final List<dynamic> data = jsonDecode(body);
+
+        return data.map((item) => Recipe.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load recipes: ${response.statusCode}');
+      }
+    } catch (error) {
+      // print("Error: $error");
+      throw Exception('Error fetching recipes: $error');
     }
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     recipes = fetchRecipes();
   }
@@ -40,7 +48,7 @@ class _TrendingRecipeListState extends State<TrendingRecipeList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded( // Use Expanded to take available space
+        Expanded(
           child: FutureBuilder<List<Recipe>>(
             future: recipes,
             builder: (context, snapshot) {
@@ -49,20 +57,28 @@ class _TrendingRecipeListState extends State<TrendingRecipeList> {
                   padding: const EdgeInsets.all(8),
                   itemCount: snapshot.data!.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return Card(child:ListTile(
-                      title: Text(snapshot.data![index].name, style: const TextStyle(
-                          fontFamily: 'Poppins'
-                      ),),
-                      subtitle: Text(snapshot.data![index].category, style: const TextStyle(
-                          fontFamily: 'Poppins'),),
+                    return Card(
+                        child: ListTile(
+                      title: Text(
+                        snapshot.data![index].name,
+                        style: const TextStyle(fontFamily: 'Poppins'),
+                      ),
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
-                        child: Image.network(snapshot.data![index].thumb),
-                      ) ,
-                      trailing: IconButton(icon: const Icon(Icons.arrow_forward_ios_rounded), onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => RecipePage(recipeId: snapshot.data![index].id)));
-                      },),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Image.network(snapshot.data![index].imageUrl),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => RecipePage(
+                                      recipeId: snapshot.data![index].id)));
+                        },
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
                     ));
                   },
                 );
@@ -76,6 +92,5 @@ class _TrendingRecipeListState extends State<TrendingRecipeList> {
         ),
       ],
     );
-
   }
 }

@@ -1,4 +1,6 @@
+import 'package:a_table/src/pages/favorites_recipe_list.dart';
 import 'package:a_table/src/pages/home_page.dart';
+import 'package:a_table/src/pages/profil.dart';
 import 'package:a_table/src/pages/search_recipe_page.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +22,8 @@ class _MyAppState extends State<MyApp> {
   final List<Widget> _pages = const [
     TrendingRecipeList(),
     SearchRecipePage(),
-    Center(child: Text("Favorites recipes")), // Placeholder pour la page des favoris
+    FavoritesRecipeList(), // Placeholder pour la page des favoris
+    Profil() // Placeholder pour la page de profil
   ];
 
   // Change l'index courant
@@ -39,13 +42,15 @@ class _MyAppState extends State<MyApp> {
           title: Text([
             "Trending recipes",
             "Search recipes",
-            "Favorites recipes"
+            "Favorites recipes",
+            "Profil"
           ][_currentIndex]),
         ),
         body: _pages[_currentIndex], // Utilise la liste des pages
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: setCurrentIndex,
+          unselectedItemColor: Colors.grey,
           selectedItemColor: Colors.orange,
           items: const [
             BottomNavigationBarItem(
@@ -59,6 +64,10 @@ class _MyAppState extends State<MyApp> {
             BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
               label: "Favorites",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: "Profil",
             ),
           ],
         ),
